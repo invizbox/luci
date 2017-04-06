@@ -22,7 +22,7 @@ function index()
 				has_switch = true
 				return false
 			end)
-
+--[[
 		if has_switch then
 			page  = node("admin", "network", "vlan")
 			page.target = cbi("admin_network/vlan")
@@ -32,7 +32,7 @@ function index()
 			page = entry({"admin", "network", "switch_status"}, call("switch_status"), nil)
 			page.leaf = true
 		end
-
+]]--
 
 		local has_wifi = false
 
@@ -81,7 +81,7 @@ function index()
 			end
 		end
 
-
+--[[
 		page = entry({"admin", "network", "iface_add"}, cbi("admin_network/iface_add"), nil)
 		page.leaf = true
 
@@ -99,8 +99,9 @@ function index()
 
 		page = entry({"admin", "network", "network"}, arcombine(cbi("admin_network/network"), cbi("admin_network/ifaces")), _("Interfaces"), 10)
 		page.leaf   = true
+]]--
 		page.subindex = true
-
+--[[
 		if page.inreq then
 			uci:foreach("network", "interface",
 				function (section)
@@ -112,7 +113,7 @@ function index()
 				end)
 		end
 
-
+]]--
 		if nixio.fs.access("/etc/config/dhcp") then
 			page = node("admin", "network", "dhcp")
 			page.target = cbi("admin_network/dhcp")
@@ -122,36 +123,36 @@ function index()
 			page = entry({"admin", "network", "dhcplease_status"}, call("lease_status"), nil)
 			page.leaf = true
 
-			page = node("admin", "network", "hosts")
-			page.target = cbi("admin_network/hosts")
-			page.title  = _("Hostnames")
-			page.order  = 40
+--			page = node("admin", "network", "hosts")
+--			page.target = cbi("admin_network/hosts")
+--			page.title  = _("Hostnames")
+--			page.order  = 40
 		end
 
-		page  = node("admin", "network", "routes")
-		page.target = cbi("admin_network/routes")
-		page.title  = _("Static Routes")
-		page.order  = 50
+--		page  = node("admin", "network", "routes")
+--		page.target = cbi("admin_network/routes")
+--		page.title  = _("Static Routes")
+--		page.order  = 50
 
-		page = node("admin", "network", "diagnostics")
-		page.target = template("admin_network/diagnostics")
-		page.title  = _("Diagnostics")
-		page.order  = 60
+--		page = node("admin", "network", "diagnostics")
+--		page.target = template("admin_network/diagnostics")
+--		page.title  = _("Diagnostics")
+--		page.order  = 60
 
-		page = entry({"admin", "network", "diag_ping"}, post("diag_ping"), nil)
-		page.leaf = true
-
-		page = entry({"admin", "network", "diag_nslookup"}, post("diag_nslookup"), nil)
-		page.leaf = true
-
-		page = entry({"admin", "network", "diag_traceroute"}, post("diag_traceroute"), nil)
-		page.leaf = true
-
-		page = entry({"admin", "network", "diag_ping6"}, post("diag_ping6"), nil)
-		page.leaf = true
-
-		page = entry({"admin", "network", "diag_traceroute6"}, post("diag_traceroute6"), nil)
-		page.leaf = true
+--		page = entry({"admin", "network", "diag_ping"}, post("diag_ping"), nil)
+--		page.leaf = true
+--
+--		page = entry({"admin", "network", "diag_nslookup"}, post("diag_nslookup"), nil)
+--		page.leaf = true
+--
+--		page = entry({"admin", "network", "diag_traceroute"}, post("diag_traceroute"), nil)
+--		page.leaf = true
+--
+--		page = entry({"admin", "network", "diag_ping6"}, post("diag_ping6"), nil)
+--		page.leaf = true
+--
+--		page = entry({"admin", "network", "diag_traceroute6"}, post("diag_traceroute6"), nil)
+--		page.leaf = true
 --	end
 end
 

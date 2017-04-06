@@ -8,23 +8,20 @@
 
 <form method="post" action="<%=pcdata(luci.http.getenv("REQUEST_URI"))%>">
 	<%- if fuser then %>
-	<div class="errorbox"><%:Invalid username and/or password! Please try again.%></div>
+	<div class="errorbox"><%:Invalid password! Please try again.%></div>
 	<% end -%>
 
 	<div class="cbi-map">
 		<h2 name="content"><%:Authorization Required%></h2>
-		<div class="cbi-map-descr">
-			<%:Please enter your username and password.%>
-		</div>
 		<fieldset class="cbi-section"><fieldset class="cbi-section-node">
-			<div class="cbi-value">
+			<div class="cbi-value" id="cbi-username">
 				<label class="cbi-value-title"><%:Username%></label>
 				<div class="cbi-value-field">
 					<input class="cbi-input-user" type="text" name="luci_username" value="<%=duser%>" />
 				</div>
 			</div>
 			<div class="cbi-value cbi-value-last">
-				<label class="cbi-value-title"><%:Password%></label>
+				<label class="cbi-value-title"><%:Administrator Password%></label>
 				<div class="cbi-value-field">
 					<input class="cbi-input-password" type="password" name="luci_password" />
 				</div>
@@ -33,8 +30,8 @@
 	</div>
 
 	<div>
-		<input type="submit" value="<%:Login%>" class="cbi-button cbi-button-apply" />
-		<input type="reset" value="<%:Reset%>" class="cbi-button cbi-button-reset" />
+		<!-- <input type="reset" value="<%:Reset%>" class="cbi-button cbi-button-reset" /> -->
+        <input type="submit" value="<%:Login%>" class="cbi-button cbi-button-apply btn-primary" />
 	</div>
 </form>
 <script type="text/javascript">//<![CDATA[
