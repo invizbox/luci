@@ -105,8 +105,11 @@ function authenticator.htmlauth(validator, accs, default)
 	local user = http.formvalue("luci_username")
 	local pass = http.formvalue("luci_password")
 
+	local uci_cursor = require("uci").cursor()
 	if user and validator(user, pass) then
 		return user
+	elseif uci_cursor:load("wizard") and uci_cursor:get("wizard", "main", "complete") ~= "true" then
+		return "root"
 	end
 
 	require("luci.i18n")

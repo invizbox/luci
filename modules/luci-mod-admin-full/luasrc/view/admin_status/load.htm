@@ -129,7 +129,7 @@
 				label_scale.innerHTML = String.format('<%:(%d minute window, %d second interval)%>', data_wanted / 60, 3);
 
 				/* render datasets, start update interval */
-				XHR.poll(3, '<%=build_url("admin/status/realtime/load_status")%>', null,
+				XHR.poll(3, '<%=build_url("admin/realtime/load_status")%>', null,
 					function(x, data)
 					{
 						var data_max   = 0;
@@ -244,13 +244,14 @@
 
 <h2 name="content"><%:Realtime Load%></h2>
 
-<embed id="bwsvg" style="width:100%; height:300px; border:1px solid #000000; background-color:#FFFFFF" src="<%=resource%>/load.svg" />
+<fieldset>
+	<embed id="bwsvg" style="width:100%; height:300px; border:1px solid #000000; background-color:#FFFFFF" src="<%=resource%>/load.svg" />
 <div style="text-align:right"><small id="scale">-</small></div>
 <br />
 
 <table style="width:100%; table-layout:fixed" cellspacing="5">
 	<tr>
-		<td style="text-align:right; vertical-align:top"><strong style="border-bottom:2px solid #ff0000; white-space:nowrap"><%:1 Minute Load:%></strong></td>
+		<td style="text-align:right; vertical-align:top"><strong style="border-bottom:2px solid #ff0000; white-space:nowrap"><%:1 Min Load:%></strong></td>
 		<td id="lb_load01_cur">0</td>
 
 		<td style="text-align:right; vertical-align:top"><strong><%:Average:%></strong></td>
@@ -260,7 +261,7 @@
 		<td id="lb_load01_peak">0</td>
 	</tr>
 	<tr>
-		<td style="text-align:right; vertical-align:top"><strong style="border-bottom:2px solid #ff6600; white-space:nowrap"><%:5 Minute Load:%></strong></td>
+		<td style="text-align:right; vertical-align:top"><strong style="border-bottom:2px solid #ff6600; white-space:nowrap"><%:5 Min Load:%></strong></td>
 		<td id="lb_load05_cur">0</td>
 
 		<td style="text-align:right; vertical-align:top"><strong><%:Average:%></strong></td>
@@ -270,7 +271,7 @@
 		<td id="lb_load05_peak">0</td>
 	</tr>
 	<tr>
-		<td style="text-align:right; vertical-align:top"><strong style="border-bottom:2px solid #ffaa00; white-space:nowrap"><%:15 Minute Load:%></strong></td>
+		<td style="text-align:right; vertical-align:top"><strong style="border-bottom:2px solid #ffaa00; white-space:nowrap"><%:15 Min Load:%></strong></td>
 		<td id="lb_load15_cur">0</td>
 
 		<td style="text-align:right; vertical-align:top"><strong><%:Average:%></strong></td>
@@ -280,5 +281,6 @@
 		<td id="lb_load15_peak">0</td>
 	</tr>
 </table>
+</fieldset>
 
 <%+footer%>
