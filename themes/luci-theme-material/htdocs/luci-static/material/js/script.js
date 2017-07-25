@@ -62,6 +62,10 @@
 
         $(".main > .main-left > .nav > .slide > .menu").each(function () {
             var ulNode = $(this);
+            if (ulNode.attr("data-title") == "Status" && nodeUrl.indexOf("status") != -1){
+                ulNode.addClass("active");
+            }
+
             ulNode.next().find("a").each(function () {
                 var that = $(this);
                 var href = that.attr("href");
@@ -85,15 +89,20 @@
     $(".main > .main-left > .nav > .slide > .menu").click(function () {
         var ul = $(this).next(".slide-menu");
         var menu = $(this);
-        if (!ul.is(":visible")) {
+        if (menu.attr("data-title") != "Status" && menu.attr("data-title") != "Logout" && menu.attr("data-title") != "Expert Mode" && menu.attr("data-title") != "Basic Mode"){
+            if (!ul.is(":visible")) {
+               menu.addClass("active");
+                ul.addClass("active");
+                ul.stop(true).slideDown("fast");
+            } else {
+                ul.stop(true).slideUp("fast", function () {
+                    menu.removeClass("active");
+                    ul.removeClass("active");
+                });
+            }
+        }else {
             menu.addClass("active");
-            ul.addClass("active");
-            ul.stop(true).slideDown("fast");
-        } else {
-            ul.stop(true).slideUp("fast", function () {
-                menu.removeClass("active");
-                ul.removeClass("active");
-            });
+            location.href = menu.attr("href");
         }
         return false;
     });
@@ -163,7 +172,7 @@
         } else {
             $(".darkMask").stop(true).fadeIn("fast");
             $(".main-left").stop(true).animate({
-                width: "15rem"
+                width: "100%"
             }, "fast");
             $(".main-right").css("overflow-y", "hidden");
             showSide = true;
@@ -196,7 +205,7 @@
      */
     $("legend").each(function () {
         var that = $(this);
-        that.after("<span class='panel-title'>" + that.text() + "</span>");
+        that.after("<span class='panel-title'>" + that.html() + "</span>");
     });
 
     $(".cbi-section-table-titles, .cbi-section-table-descr, .cbi-section-descr").each(function () {

@@ -436,7 +436,7 @@ msgid "Authoritative"
 msgstr "Authoritative"
 
 msgid "Authorization Required"
-msgstr "Authorization Required"
+msgstr "Sign in to your InvizBox Go"
 
 msgid "Auto Refresh"
 msgstr "Auto Refresh"
