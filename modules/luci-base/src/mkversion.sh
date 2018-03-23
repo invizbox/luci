@@ -7,6 +7,7 @@ module "luci.version"
 
 if pcall(dofile, "/etc/openwrt_release") and _G.DISTRIB_DESCRIPTION then
 	distname    = ""
+	distrelease = _G.DISTRIB_RELEASE
 	distversion = _G.DISTRIB_DESCRIPTION
 	if _G.DISTRIB_REVISION then
 		distrevision = _G.DISTRIB_REVISION

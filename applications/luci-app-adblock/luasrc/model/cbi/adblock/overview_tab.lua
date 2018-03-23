@@ -11,12 +11,7 @@ local dnsFile1 = sys.exec("find '/tmp/dnsmasq.d/.adb_hidden' -maxdepth 1 -type f
 local dnsFile2 = sys.exec("find '/var/lib/unbound/.adb_hidden' -maxdepth 1 -type f -name 'adb_list*' -print 2>/dev/null")
 
 m = Map("adblock", translate("Adblock"),
-	translate("Configuration of the adblock package to block ad/abuse domains by using DNS. ")
-	.. translate("For further information ")
-	.. [[<a href="https://github.com/openwrt/packages/blob/master/net/adblock/files/README.md" target="_blank">]]
-	.. translate("see online documentation")
-	.. [[</a>]]
-	.. translate("."))
+	translate("Configuration of the adblock package to block ad/abuse domains by using DNS."))
 m.reset = false
 
 -- Main adblock options
@@ -27,7 +22,7 @@ o1 = s:option(Flag, "adb_enabled", translate("Enable adblock"))
 o1.default = o1.enabled
 o1.rmempty = false
 
-btn = s:option(Button, "", translate("Suspend / Resume adblock"))
+--[[btn = s:option(Button, "", translate("Suspend / Resume adblock"))
 if dnsFile1 ~= "" or dnsFile2 ~= "" then
 	btn.inputtitle = translate("Resume adblock")
 	btn.inputstyle = "apply"
@@ -159,6 +154,6 @@ e3.rmempty = false
 
 e4 = e:option(Value, "adb_backupdir", translate("Backup directory"))
 e4.datatype = "directory"
-e4.rmempty = false
+e4.rmempty = false ]]--
 
 return m

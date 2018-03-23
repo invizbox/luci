@@ -169,7 +169,7 @@
 				label_scale_2.innerHTML = String.format('<%:(%d minute window, %d second interval)%>', data_wanted / 60, 3);
 
 				/* render datasets, start update interval */
-				XHR.poll(3, '<%=build_url("admin/status/realtime/wireless_status", curdev)%>', null,
+				XHR.poll(3, '<%=build_url("admin/realtime/wireless_status", curdev)%>', null,
 					function(x, data)
 					{
 						var noise_floor = 255;
@@ -315,7 +315,8 @@
 
 <h2 name="content"><%:Realtime Wireless%></h2>
 
-<ul class="cbi-tabmenu">
+<fieldset>
+	<ul class="cbi-tabmenu">
 	<% for _, dev in ipairs(devices) do %>
 		<li class="cbi-tab<%= dev == curdev and "" or "-disabled" %>"><a href="?dev=<%=pcdata(dev)%>"><%=pcdata(dev)%></a></li>
 	<% end %>
@@ -366,5 +367,6 @@
 		<td id="rate_bw_peak">0 MBit/s</td>
 	</tr>
 </table>
+</fieldset>
 
 <%+footer%>

@@ -14,5 +14,5 @@
 		ifattr(self.combobox_manual, "data-manual", self.combobox_manual) ..
 		ifattr(#self.keylist > 0, "data-choices", { self.keylist, self.vallist })
 	%> />
-	<% if self.password then %><img src="<%=resource%>/cbi/reload.gif" style="vertical-align:middle" title="<%:Reveal/hide password%>" onclick="var e = document.getElementById('<%=cbid%>'); e.type = (e.type=='password') ? 'text' : 'password';" /><% end %>
+	<% if self.password then %><i id="revealpass" class="fa fa-eye fa-lg" aria-hidden="true" style="vertical-align:middle;cursor:pointer" title="Reveal/hide password" onclick="var e = document.getElementById('<%=cbid%>'); e.type = (e.type=='password') ? 'text' : 'password';" ></i><% end %>
 <%+cbi/valuefooter%>

@@ -7,7 +7,7 @@
 			<div class="cbi-section-descr"><%=self.description%></div>
 		<%- end %>
 		<% if self.addremove then -%>
-			<div class="cbi-section-remove right">
+			<div class="cbi-section-remove">
 				<input type="submit" class="cbi-button" name="cbi.rns.<%=self.config%>.<%=section%>" value="<%:Delete%>" />
 			</div>
 		<%- end %>
@@ -15,7 +15,6 @@
 		<div class="cbi-section-node<% if self.tabs then %> cbi-section-node-tabbed<% end %>" id="cbi-<%=self.config%>-<%=section%>">
 			<%+cbi/ucisection%>
 		</div>
-		<br />
 	</fieldset>
 <% elseif self.addremove then %>
 	<% if self.template_addremove then include(self.template_addremove) else -%>

@@ -390,15 +390,15 @@
 	<% for _, dev in ipairs(devices) do local nets = dev:get_wifinets() %>
 	<!-- device <%=dev:name()%> -->
 	<fieldset class="cbi-section">
-		<table class="cbi-section-table" style="margin:10px; empty-cells:hide">
+		<table class="cbi-section-table" >
 			<!-- physical device -->
 			<tr>
-				<td style="width:34px"><img src="<%=resource%>/icons/wifi_big_disabled.png" style="float:left; margin-right:10px" id="<%=dev:name()%>-iw-upstate" /></td>
+		
 				<td colspan="2" style="text-align:left">
 					<big><strong><%=guess_wifi_hw(dev)%> (<%=dev:name()%>)</strong></big><br />
 					<span id="<%=dev:name()%>-iw-devinfo"></span>
 				</td>
-				<td style="width:310px;text-align:right">
+				<td >
 					<form action="<%=url('admin/network/wireless_join')%>" method="post" class="inline">
 						<input type="hidden" name="device" value="<%=dev:name()%>" />
 						<input type="hidden" name="token" value="<%=token%>" />
@@ -417,14 +417,14 @@
 			<% if #nets > 0 then %>
 				<% for i, net in ipairs(nets) do %>
 				<tr class="cbi-section-table-row cbi-rowstyle-<%=1 + ((i-1) % 2)%>">
-					<td></td>
-					<td class="cbi-value-field" style="vertical-align:middle; padding:3px" id="<%=net:id()%>-iw-signal">
+				
+					<td class="cbi-value-field"  id="<%=net:id()%>-iw-signal">
 						<span class="ifacebadge" title="<%:Not associated%>"><img src="<%=resource%>/icons/signal-none.png" /> 0%</span>
 					</td>
-					<td class="cbi-value-field" style="vertical-align:middle; text-align:left; padding:3px" id="<%=net:id()%>-iw-status">
+					<td class="cbi-value-field"  id="<%=net:id()%>-iw-status">
 						<em><%:Collecting data...%></em>
 					</td>
-					<td class="cbi-value-field" style="width:310px;text-align:right">
+					<td class="cbi-value-field" >
 						<input id="<%=net:id()%>-iw-toggle" type="button" class="cbi-button cbi-button-reload" style="width:100px" onclick="wifi_shutdown('<%=net:id()%>', this)" title="<%:Delete this network%>" value="<%:Enable%>" />
 						<input type="button" class="cbi-button cbi-button-edit" style="width:100px" onclick="location.href='<%=net:adminlink()%>'" title="<%:Edit this network%>" value="<%:Edit%>" />
 						<input type="button" class="cbi-button cbi-button-remove" style="width:100px" onclick="wifi_delete('<%=net:id()%>')" title="<%:Delete this network%>" value="<%:Remove%>" />
@@ -433,8 +433,8 @@
 				<% end %>
 			<% else %>
 				<tr class="cbi-section-table-row cbi-rowstyle-2">
-					<td></td>
-					<td colspan="3" class="cbi-value-field" style="vertical-align:middle; text-align:left; padding:3px">
+					
+					<td colspan="3" class="cbi-value-field" >
 						<em><%:No network configured on this device%></em>
 					</td>
 				</tr>
@@ -446,10 +446,10 @@
 	<% end %>
 
 
-	<h2><%:Associated Stations%></h2>
+	<h3><%:Associated Stations%></h3>
 
 	<fieldset class="cbi-section">
-		<table class="cbi-section-table valign-middle" style="margin:10px" id="iw-assoclist">
+		<table class="cbi-section-table valign-middle" id="iw-assoclist">
 			<tr class="cbi-section-table-titles">
 				<th class="cbi-section-table-cell"></th>
 				<th class="cbi-section-table-cell"><%:SSID%></th>
