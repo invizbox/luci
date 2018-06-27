@@ -76,6 +76,15 @@ XHR = function()
 		xhr.send(null);
 	}
 
+	this.get_synchronous = function(url)
+	{
+		this.reinit();
+		var xhr  = this._xmlHttp;
+		url = location.protocol + '//' + location.host + url;
+		xhr.open('GET', url, false);
+		xhr.send(null);
+	}
+
 	this.post = function(url,data,callback)
 	{
 		this.reinit();

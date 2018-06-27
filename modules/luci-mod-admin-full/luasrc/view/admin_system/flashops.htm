@@ -6,12 +6,21 @@
 
 <%+header%>
 
+<script type="text/javascript">//<![CDATA[
+	function stop_tor() {
+		(new XHR()).get_synchronous('<%=url('admin/system/flashops/stop_tor')%>');
+		return true;
+	}
+//]]></script>
+
 <h2 name="content"><%:Flash operations%></h2>
 
-<ul class="cbi-tabmenu">
-	<li class="cbi-tab"><a href="#"><%:Actions%></a></li>
-	<li class="cbi-tab-disabled"><a href="<%=REQUEST_URI%>/backupfiles"><%:Configuration%></a></li>
-</ul>
+<fieldset class="cbi-section">
+	<ul class="cbi-tabmenu">
+		<li class="cbi-tab"><a href="#"><%:Actions%></a></li>
+		<li class="cbi-tab-disabled"><a href="<%=REQUEST_URI%>/backupfiles"><%:Configuration%></a></li>
+	</ul>
+</fieldset>
 
 <fieldset class="cbi-section">
 
@@ -61,14 +70,14 @@
 	<fieldset class="cbi-section">
 		<legend><%:Flash new firmware image%></legend>
 		<% if upgrade_avail then %>
-			<form method="post" action="<%=url('admin/system/flashops/sysupgrade')%>" enctype="multipart/form-data">
+			<form method="post" action="<%=url('admin/system/flashops/sysupgrade')%>" enctype="multipart/form-data" onsubmit="return stop_tor()">
 				<input type="hidden" name="token" value="<%=token%>" />
 				<div class="cbi-section-descr"><%:Upload a sysupgrade-compatible image here to replace the running firmware. Check "Keep settings" to retain the current configuration (requires a compatible firmware image).%></div>
 				<div class="cbi-section-node">
 					<div class="cbi-value">
 						<label class="cbi-value-title" for="keep"><%:Keep settings%>:</label>
 						<div class="cbi-value-field">
-							<input type="checkbox" name="keep" id="keep" checked="checked" />
+							<input type="checkbox" class="cbi-input-checkbox" name="keep" id="keep" checked="checked" />
 						</div>
 					</div>
 					<div class="cbi-value cbi-value-last<% if image_invalid then %> cbi-value-error<% end %>">

@@ -10,20 +10,17 @@ local json     = require("luci.jsonc")
 local adbinput = uci.get("adblock", "global", "adb_rtfile") or "/tmp/adb_runtime.json"
 
 if not uci:get("adblock", "extra") then
-	m = SimpleForm("", nil, translate("Please update your adblock config file to use this package.<br />")
-	.. translatef("During opkg package installation use the '--force-maintainer' option to overwrite the pre-existing config file or download a fresh default config from "
+	m = SimpleForm("", nil, translate("If you want to use adblock, please reset your device as the current configuration is obsolete (and was kept during the last update).<br />")
+	.. translatef("You can find instruction on how to reset your InvizBox Go "
 	.. "<a href=\"%s\" target=\"_blank\">"
-	.. "here</a>", "https://raw.githubusercontent.com/openwrt/packages/master/net/adblock/files/adblock.conf"))
+	.. "here</a>", "https://support.invizbox.com/hc/en-us/articles/115000385945"))
 	m.submit = false
 	m.reset = false
 	return m
 end
 
 m = Map("adblock", translate("Adblock"),
-	translate("Configuration of the adblock package to block ad/abuse domains by using DNS. ")
-	.. translatef("For further information "
-	.. "<a href=\"%s\" target=\"_blank\">"
-	.. "check the online documentation</a>", "https://github.com/openwrt/packages/blob/master/net/adblock/files/README.md"))
+	translate("Configuration of the adblock package to block ad/abuse domains by using DNS."))
 
 function m.on_after_commit(self)
 	luci.sys.call("/etc/init.d/adblock reload >/dev/null 2>&1")
@@ -48,7 +45,7 @@ o1 = s:option(Flag, "adb_enabled", translate("Enable Adblock"))
 o1.default = o1.disabled
 o1.rmempty = false
 
-btn = s:option(Button, "", translate("Suspend / Resume Adblock"))
+--[[btn = s:option(Button, "", translate("Suspend / Resume Adblock"))
 if parse and status == "enabled" then
 	btn.inputtitle = translate("Suspend")
 	btn.inputstyle = "reset"
@@ -268,6 +265,6 @@ e12.optional = true
 e13 = e:option(Value, "adb_triggerdelay", translate("Trigger Delay"),
 	translate("Additional trigger delay in seconds before adblock processing begins."))
 e13.datatype = "range(1,60)"
-e13.optional = true
+e13.optional = true]]--
 
 return m

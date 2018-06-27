@@ -24,6 +24,9 @@
 	local util = require "luci.util"
 	local http = require "luci.http"
 	local disp = require "luci.dispatcher"
+	local uci = require("uci").cursor()
+	local uci_etc = uci.cursor("/etc")
+	local utils = require "invizboxutils"
 
 	local boardinfo = util.ubus("system", "board")
 
@@ -42,6 +45,12 @@
 
 	local c = tree
 	local i, r
+
+	-- Get firmware information
+	local config_name = "updateinfo"
+	uci_etc:load(config_name)
+	local current_version = uci_etc:get(config_name, "version", "firmware")
+	local new_version = uci_etc:get(config_name, "version", "new_firmware")
 
 	-- tag all nodes leading to this page
 	for i, r in ipairs(request) do
@@ -109,7 +118,7 @@
 <html lang="<%=luci.i18n.context.lang%>">
 <head>
     <meta charset="utf-8">
-    <title><%=striptags( (boardinfo.hostname or "?") .. ( (node and node.title) and ' - ' .. translate(node.title) or '')) %> - LuCI</title>
+    <title><%=striptags( (boardinfo.hostname or "?") .. ( (node and node.title) and ' - ' .. translate(node.title) or '')) %> - InvizBox</title>
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
     <meta name="format-detection" content="telephone=no, email=no"/>
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -128,6 +137,7 @@
     <link rel="icon" href="<%=media%>/logo.png" sizes="144x144">
     <link rel="apple-touch-icon-precomposed" href="<%=media%>/logo.png" sizes="144x144">
 
+    <link rel="stylesheet" href="<%=media%>/css/font-awesome.min.css">
     <link rel="stylesheet" href="<%=media%>/css/style.css">
     <link rel="shortcut icon" href="<%=media%>/favicon.ico">
     <% if node and node.css then %>
@@ -145,8 +155,12 @@
 
 <header>
 	<div class="container">
+		<%- if uci:load("wizard") and uci:get("wizard", "main", "complete") ~= "false" then -%>
 		<span class="showSide"></span>
-		<a class="brand" href="#"><%=boardinfo.hostname or "?"%></a>
+		<%  else %>
+		<span class="showSide wizard"></span>
+		<%  end %>
+		<a class="brand" href="<%=controller%>"><img src="<%=media%>/invizbox-logo-color.png"> </a>
 		<div class="pull-right">
 		<%
 		-- calculate the number of unsaved changes
@@ -174,7 +188,11 @@
 
  <div class="main">
 	 <div style="" class="loading"><span><div class="loading-img"></div>Loading...</span></div>
+	 <%- if uci:load("wizard") and uci:get("wizard", "main", "complete") ~= "false" then -%>
 	 <div class="main-left">
+	 <%  else %>
+	 <div class="main-left wizard">
+	 <%  end %>
 		 <ul class="nav">
 			 <%-
 			 local function submenu(prefix, node)
@@ -213,8 +231,8 @@
 				 <%- submenu(category .. "/" .. r .. "/", nnode) %>
 			 </li>
 			 <%          else %>
-			 <li>
-				 <a data-title="<%=pcdata(striptags(nnode.title))%>" href="<%=pcdata(href)%>"><%=pcdata(striptags(translate(nnode.title)))%></a>
+			<li class="slide">
+				 <a class="menu"  data-title="<%=pcdata(striptags(nnode.title))%>" href="<%=pcdata(href)%>"><%=pcdata(striptags(translate(nnode.title)))%></a>
 			 </li>
 			 <%
 			 end
@@ -223,11 +241,29 @@
 			 %>
 		 </ul>
 	 </div>
+	 <%- if uci:load("wizard") and uci:get("wizard", "main", "complete") ~= "false" then -%>
 	 <div class="main-right">
+	 <%  else %>
+	 <div class="main-right wizard">
+	 <%  end %>
 		 <div class="darkMask"></div>
 		 <div id="maincontent">
 			 <div class="container">
-				 <%- if luci.sys.process.info("uid") == 0 and luci.sys.user.getuser("root") and not luci.sys.user.getpasswd("root") then -%>
+				<%- if new_version and node.title and utils.file_exists("/tmp/update/firmware/InvizBox-Go-"..new_version.."-sysupgrade.bin") then -%>
+					 <div class="alert-message warning">
+						 <h4><%:New firmware Upgrade available!%></h4>
+						 A new firmware version has been downloaded and is available to upgrade.
+						 Please plug the InvizBox Go into power source before upgrade
+						 <form class="inline" action="<%=url('admin/system/flashops/sysupgrade')%>" method="post">
+							 <input type="hidden" name="token" value="<%=token%>" />
+							 <input type="hidden" name="step" value="2" />
+							 <input type="hidden" name="version" value="<%=new_version%>" />
+							 <input type="hidden" name="keep" value="1" />
+							 <input id="upgrade" class="btn btn-default btn-primary btn-next cbi-button cbi-button-apply" type="submit" value="<%:Upgrade Now%>" />
+						 </form>
+					 </div>
+				 <%- end -%>
+				 <%- if luci.sys.process.info("uid") == 0 and luci.sys.user.getuser("root") and not luci.sys.user.getpasswd("root") and uci:load("wizard") and uci:get("wizard", "main", "complete") ~= "false" then -%>
 					 <div class="alert-message warning">
 						 <h4><%:No password set!%></h4>
 						 <%:There is no password set on this router. Please configure a root password to protect the web interface and enable SSH.%><br>
@@ -235,4 +271,3 @@
 					 </div>
 				 <%- end -%>
 				 <% if category then subtree("/" .. category .. "/", cattree) end %>
-

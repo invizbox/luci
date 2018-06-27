@@ -52,3 +52,10 @@ config samba
 
 config tinyproxy
 	option init tinyproxy
+
+config vpn
+	option init vpnwatch
+	list affects netwatch
+
+config netwatch
+	option init netwatch
