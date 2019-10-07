@@ -10,10 +10,14 @@
 	local util = require "luci.util"
 	local stat = require "luci.tools.status"
 	local ver = require "luci.version"
+	local uci_mod = require("uci")
+	local uci = uci_mod.cursor()
+	local uci_rom = uci_mod.cursor("/rom/etc/config")
+	local utils = require "invizboxutils"
 
-	local has_ipv6 = fs.access("/proc/net/ipv6_route")
+	local has_ipv6 = false
 	local has_dhcp = fs.access("/etc/config/dhcp")
-	local has_wifi = ((fs.stat("/etc/config/wireless", "size") or 0) > 0)
+	local has_wifi = false
 
 	local sysinfo = luci.util.ubus("system", "info") or { }
 	local boardinfo = luci.util.ubus("system", "board") or { }
@@ -45,6 +49,7 @@
 			"sysctl -n -e net.nf_conntrack_max net.ipv4.netfilter.ip_conntrack_max"
 		):match("%d+")) or 4096
 
+		local wan_interface = uci:get("network", "wan", "ifname") or uci:get("wireless", "wan", "ifname") or "eth0.2"
 		local rv = {
 			uptime     = sysinfo.uptime or 0,
 			localtime  = os.date(),
@@ -53,7 +58,17 @@
 			swap       = swapinfo,
 			connmax    = conn_max,
 			conncount  = conn_count,
-			wifinets   = stat.wifi_networks()
+			wifinets   = stat.wifi_networks(),
+			status = uci:get("netwatch", "status", "status") or 0,
+			apstatus = uci:get("netwatch", "status", "lan") or 0,
+			wanstatus = uci:get("netwatch", "status", "wan") or 0,
+			vpnstatus = uci:get("netwatch", "status", "vpn") or 0,
+			vpncity = uci:get("vpn", uci:get("vpn", "active", "vpn") or "", "city") or 0,
+			privacymode = uci:get("vpn", "active", "mode") or "vpn",
+			vpn_registered = uci:get("vpn", "active", "registered") or 0,
+			vpn_expiry = uci:get("vpn", "active", "expiry") or 0,
+			vpn_renewal = uci:get("vpn", "active", "renewal") or 0,
+			macaddress = luci.sys.exec("cat /sys/class/net/"..wan_interface.."/address")
 		}
 
 		if wan then
@@ -122,10 +137,10 @@
 		var pc = Math.floor((100 / mn) * vn);
 
 		return String.format(
-			'<div style="width:100%%; max-width:200px; position:relative; border:1px solid #999999">' +
+			'<div style="width:100%%; position:relative; border:1px solid #999999">' +
 				'<div style="background-color:#CCCCCC; width:%d%%; height:15px">' +
 					'<div style="position:absolute; left:0; top:0; text-align:center; width:100%%; color:#000000">' +
-						'<small>%s / %s (%d%%)</small>' +
+						'%s / %s (%d%%)' +
 					'</div>' +
 				'</div>' +
 			'</div>', pc, v, m, pc
@@ -179,13 +194,17 @@
 
 			var ifc = info.wan || {};
 
+			let ssid = "";
+			if (ifc && ifc.name && ifc.name.split('"').length > 0) {
+				 ssid = ifc.name.split('"')[1];
+			}
+
 			us.appendChild(renderBox(
 				'<%:IPv4 Upstream%>',
 				(ifc.ifname && ifc.proto != 'none'),
 				[ E('div', {}, renderBadge(
 					'<%=resource%>/icons/%s.png'.format((ifc && ifc.type) ? ifc.type : 'ethernet_disabled'), null,
-					'<%:Device%>', ifc ? (ifc.name || ifc.ifname || '-') : '-',
-					'<%:MAC-Address%>', (ifc && ifc.ether) ? ifc.mac : null)) ],
+					'', ifc ? (ssid || ifc.name || ifc.ifname || '-') : '-',)) ],
 				'<%:Protocol%>', ifc.i18n || E('em', '<%:Not connected%>'),
 				'<%:Address%>', (ifc.ipaddr) ? ifc.ipaddr : '0.0.0.0',
 				'<%:Netmask%>', (ifc.netmask && ifc.netmask != ifc.ipaddr) ? ifc.netmask : '255.255.255.255',
@@ -311,6 +330,108 @@
 
 			var e;
 
+			if (e = document.getElementById('status')){
+				if (info.status == "Secure Connection - VPN Active") {
+					document.getElementById('statusthumb').innerHTML = "<i id='statusthumbsup' class='fa fa-thumbs-up' aria-hidden='true'></i>"
+					e.innerHTML = "Secure<br>Current Location : " + info.vpncity
+					document.getElementById('vpncity_row').style.display = ""
+				}
+				else if (info.status == "Secure Connection - Tor Active" || info.status == "Wifi Extender Mode (no VPN or Tor)") {
+					document.getElementById('statusthumb').innerHTML = "<i id='statusthumbsup' class='fa fa-thumbs-up' aria-hidden='true'></i>"
+					e.innerHTML = info.status
+					document.getElementById('vpncity_row').style.display = "none"
+				}
+				else if (info.status == "Behind Captive Portal") {
+					document.getElementById('statusthumb').innerHTML = "<i id='statusthumbsorange' class='fa fa-thumbs-down' style='color: #887432;' aria-hidden='true'></i>"
+					e.innerHTML = '<input type="button" class="btn btn-default" onclick="window.open(\'http://captiveportal.invizbox.com\');" value="Activate Captive Portal" />'
+					document.getElementById('vpncity_row').style.display = "none"
+				}
+				else {
+					document.getElementById('statusthumb').innerHTML = "<i id='statusthumbsdown' class='fa fa-thumbs-down' aria-hidden='true'></i>"
+					e.innerHTML = info.status
+					document.getElementById('vpncity_row').style.display = "none"
+				}
+			}
+
+			if (e = document.getElementById('wan')){
+				if (info.wanstatus == "Up") {
+					e.innerHTML = "<i id='statusthumbsup' class='fa fa-thumbs-up' aria-hidden='true'></i>"
+				}
+				else {
+					e.innerHTML = "<i id='statusthumbsdown'class='fa fa-thumbs-down' aria-hidden='true'></i>"
+				}
+			}
+
+			if (e = document.getElementById('vpncity')){
+				if (info.vpnstatus == "Up") {
+					e.innerHTML = "<i id='statusthumbsup' class='fa fa-thumbs-up' aria-hidden='true'></i>"
+				}
+				else {
+					e.innerHTML = "<i id='statusthumbsdown' class='fa fa-thumbs-down' aria-hidden='true'></i>"
+				}
+			}
+
+			if (e = document.getElementById('privacymode')){
+				if (info.privacymode == "vpn") {
+					e.innerHTML = '<i id="statustext">VPN</i>'
+				}
+				else if (info.privacymode == "tor") {
+					e.innerHTML = '<i id="statustext">TOR</i>'
+				}
+				else {
+					e.innerHTML = '<i id="statustext">Wifi Extender</i>'
+				}
+			}
+
+			if (e = document.getElementById('expiry')){
+				if (info.vpn_expiry != 0) {
+					e.innerHTML = '<i id="statustext">' + info.vpn_expiry + '</i>'
+					if (info.vpn_expiry == "Never" || info.vpn_renewal == "true") {
+						document.getElementById('vpn_exp').innerHTML = ''
+					}
+					else if (info.vpn_registered != "true") {
+						document.getElementById('vpn_exp').innerHTML = ''
+					}
+					else {
+						document.getElementById('vpn_exp').innerHTML = '<input type="button" class="btn btn-default" onclick="window.open(\'https://www.invizbox.com/myaccount\');" value="Buy More" />'
+					}
+				}
+			}
+			if (e = document.getElementById('renewal')){
+				if (info.vpn_expiry == "Never") {
+					document.getElementById('row_renew').style.display = "none"
+				}
+				else {
+					document.getElementById('row_renew').style.display = ""
+					if (info.vpn_renewal == "true") {
+						e.innerHTML = "<i id='statusthumbsup' class='fa fa-thumbs-up' aria-hidden='true'></i>"
+						document.getElementById('vpn_renew').innerHTML = ''
+					}
+					else if (info.vpn_renewal == "false") {
+						e.innerHTML = "<i id='statusthumbsorange' class='fa fa-thumbs-down' aria-hidden='true'></i>"
+						if (info.vpn_registered == "false") {
+							document.getElementById('vpn_renew').innerHTML = '<input type="button" class="btn btn-default" onclick="window.open(\'https://www.invizbox.com/register\');" value="Register online" />'
+						}
+						else {
+							document.getElementById('vpn_renew').innerHTML = '<input type="button" class="btn btn-default" onclick="window.open(\'https://www.invizbox.com/myaccount\');" value="Enable" />'
+						}
+					}
+				}
+			}
+			if (e = document.getElementById('registration')){
+				if (info.vpn_registered == "true") {
+					e.innerHTML = "<i id='statusthumbsup' class='fa fa-thumbs-up' aria-hidden='true'></i>"
+					document.getElementById('vpn_reg').innerHTML = '<input type="button" class="btn btn-default" onclick="window.open(\'https://www.invizbox.com/myaccount\');" value="My account" />'
+				}
+				else if (info.vpn_registered == "false") {
+					e.innerHTML = "<i id='statusthumbsorange' class='fa fa-thumbs-down' aria-hidden='true'></i>"
+					document.getElementById('vpn_reg').innerHTML = '<input type="button" class="btn btn-default" onclick="window.open(\'https://www.invizbox.com/register\');" value="Register online" />'
+				}
+			}
+
+			if (e = document.getElementById('macaddress')){
+				e.innerHTML = info.macaddress;
+			}
 			if (e = document.getElementById('localtime'))
 				e.innerHTML = info.localtime;
 
@@ -362,30 +483,90 @@
 	);
 //]]></script>
 
-<h2 name="content"><%:Status%></h2>
+<h2 id="title-status" name="content"><%:Status%></h2>
+
+<div class="cbi-section">
+	<h3><%:InvizBox Status%></h3>
+	<div class="table" id="tblstatus" width="100%" cellspacing="10">
+		<div class="tr">
+			<div class="td left" width="33%"><%:Privacy Mode%></div>
+			<div class="td left" width="33%" id="privacymode">-</div>
+			<div class="td left"><input type="button" class="btn btn-default" onclick="location.href='/cgi-bin/luci/admin/invizbox/privacy_mode';" value="Choose Mode" /></div>
+		</div>
+		<div class="tr">
+			<div class="td left" width="33%"><%:InvizBox Status%></div>
+			<div class="td left" width="33%" id="statusthumb">-</div>
+			<div class="td left" id="status"></div>
+		</div>
+		<div class="tr">
+			<div class="td left" width="33%"><%:Internet Status%></div>
+			<div class="td left" width="33%" id="wan">-</div>
+<%
+	if uci:get("wizard", "main", "product_name") == "InvizBox Go" then
+%>
+			<div class="td left"><input type="button" class="btn btn-default" onclick="location.href='/cgi-bin/luci/admin/invizbox/choose_network';" value="Choose Network" /></div>
+<%
+	else
+%>
+			<div class="td left"></div>
+<%
+	end
+%>
+		</div>
+		<div class="tr" id="vpncity_row">
+			<div class="td left" width="33%"><%:VPN Connection%></div>
+			<div class="td left" width="33%" id="vpncity">-</div>
+			<div class="td left"><input type="button" class="btn btn-default" onclick="location.href='/cgi-bin/luci/admin/invizbox/vpn_location';" value="Choose Location" /></div>
+		</div>
+	</div>
+</div>
+
+<%
+	if uci:get("wizard", "pages", "show_vpn_subscription") == "true" then
+%>
+<div class="cbi-section">
+	<h3><%:VPN Subscription%></h3>
+	<div class="table" id="tblvpn" width="100%" cellspacing="10">
+		<div class="tr">
+			<div class="td left" width="33%"><%:Expiration Date%></div>
+			<div class="td left" width="33%" id="expiry">Not available yet</div>
+			<div class="td left" id="vpn_exp"></div>
+		</div>
+		<div class="tr" id="row_renew">
+			<div class="td left" width="33%"><%:Automatic Renewal%></div>
+			<div class="td left" width="33%" id="renewal">Not available yet</div>
+			<div class="td left" id="vpn_renew"></div>
+		</div>
+		<div class="tr">
+			<div class="td left" width="33%"><%:Registration%></div>
+			<div class="td left" width="33%" id="registration">Not available yet</div>
+			<div class="td left" id="vpn_reg"></div>
+		</div>
+	</div>
+</div>
+<%
+	end
+%>
 
 <div class="cbi-section">
 	<h3><%:System%></h3>
 
-	<div class="table" width="100%">
+	<div class="table">
+		<div class="tr"><div class="td left" width="33%"><%:Current Firmware Version%></div><div class="td left"><%=uci:get("update", "version", "firmware") or "Unknown"%></div></div>
+		<div class="tr"><div class="td left" width="33%"><%:Factory Reset Version%></div><div class="td left"><%=uci_rom:get("update", "version", "firmware") or "Unknown"%></div></div>
 		<div class="tr"><div class="td left" width="33%"><%:Hostname%></div><div class="td left"><%=luci.sys.hostname() or "?"%></div></div>
-		<div class="tr"><div class="td left" width="33%"><%:Model%></div><div class="td left"><%=pcdata(boardinfo.model or "?")%></div></div>
-		<div class="tr"><div class="td left" width="33%"><%:Architecture%></div><div class="td left"><%=pcdata(boardinfo.system or "?")%></div></div>
-		<div class="tr"><div class="td left" width="33%"><%:Firmware Version%></div><div class="td left">
-			<%=pcdata(ver.distname)%> <%=pcdata(ver.distversion)%> /
-			<%=pcdata(ver.luciname)%> (<%=pcdata(ver.luciversion)%>)
-		</div></div>
+		<div class="tr"><div class="td left" width="33%"><%:MAC Address%></div><div class="td left" id="macaddress">-</div></div>
+		<div class="tr"><div class="td left" width="33%"><%:Model%></div><div class="td left"><%=pcdata(boardinfo.model or boardinfo.system or "?")%></div></div>
 		<div class="tr"><div class="td left" width="33%"><%:Kernel Version%></div><div class="td left"><%=unameinfo.release or "?"%></div></div>
 		<div class="tr"><div class="td left" width="33%"><%:Local Time%></div><div class="td left" id="localtime">-</div></div>
 		<div class="tr"><div class="td left" width="33%"><%:Uptime%></div><div class="td left" id="uptime">-</div></div>
-		<div class="tr"><div class="td left" width="33%"><%:Load Average%></div><div class="td left" id="loadavg">-</div></div>
 	</div>
 </div>
 
 <div class="cbi-section">
 	<h3><%:Memory%></h3>
 
-	<div class="table" width="100%">
+	<div class="table">
 		<div class="tr"><div class="td left" width="33%"><%:Total Available%></div><div class="td left" id="memtotal">-</div></div>
 		<div class="tr"><div class="td left" width="33%"><%:Free%></div><div class="td left" id="memfree">-</div></div>
 		<div class="tr"><div class="td left" width="33%"><%:Buffered%></div><div class="td left" id="membuff">-</div></div>
@@ -396,7 +577,7 @@
 <div class="cbi-section">
 	<h3><%:Swap%></h3>
 
-	<div class="table" width="100%">
+	<div class="table">
 		<div class="tr"><div class="td left" width="33%"><%:Total Available%></div><div class="td left" id="swaptotal">-</div></div>
 		<div class="tr"><div class="td left" width="33%"><%:Free%></div><div class="td left" id="swapfree">-</div></div>
 	</div>
@@ -406,11 +587,16 @@
 <div class="cbi-section">
 	<h3><%:Network%></h3>
 
-	<div id="upstream_status_table" class="network-status-table">
-		<p><em><%:Collecting data...%></em></p>
+	<div class="network-status-table table">
+		<div class="tr">
+			<div class="td left" width="33%" style="vertical-align:top;">
+				<%:IPv4 WAN Status%>
+			</div>
+			<div class="td left" id="upstream_status_table"></div>
+		</div>
 	</div>
 
-	<div class="table" width="100%">
+	<div class="table">
 		<div class="tr"><div class="td left" width="33%"><%:Active Connections%></div><div class="td left" id="conns">-</div></div>
 	</div>
 </div>
@@ -446,6 +632,13 @@
 	<%+admin_network/wifi_assoclist%>
 </div>
 <% end %>
+
+<div class="cbi-section">
+	<h3><%:Support%></h3>
+	<div class="table">
+		<div class="tr"><div class="td left" width="33%"><%:Support Site%></div><div class="td left"><input type="button" class="btn btn-default" onclick="location.href='https://support.invizbox.com/hc/en-us';" value="InvizBox Support" /></div></div>
+	</div>
+</div>
 
 <%-
 	local incdir = util.libpath() .. "/view/admin_status/index/"

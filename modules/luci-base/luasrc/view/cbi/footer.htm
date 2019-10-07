@@ -1,14 +1,20 @@
 <%
-	local display_back  = (redirect and not flow.hidebackbtn)
-	local display_skip  = (flow.skip)
+	local display_back  = false
+	local display_skip  = false
 	local display_apply = (not autoapply and not flow.hideapplybtn)
-	local display_save  = (not flow.hidesavebtn)
-	local display_reset = (not flow.hideresetbtn)
+	local display_save  = false
+	local display_reset = false
 
 	if pageaction and
 	   (display_back or display_skip or display_apply or display_save or display_reset)
 	then
 		%><div class="cbi-page-actions"><%
+
+		local uci = require("uci").cursor()
+		local wizard_not_complete = uci:load("wizard") and uci:get("wizard", "main", "complete") == "false"
+		if flow.wizard_show_prev and wizard_not_complete then
+			%><input id="Previous" class="cbi-button" type="button" value="<%:Previous%>" onclick="javascript:location.href='/cgi-bin/luci/wizard/wizard';" /><%
+        end
 
 		if display_back then
 			%><input class="cbi-button cbi-button-link" type="button" value="<%:Back to Overview%>" onclick="location.href='<%=pcdata(redirect)%>'" /> <%
@@ -19,7 +25,13 @@
 		end
 
 		if display_apply then
-			%><input class="cbi-button cbi-button-apply" type="button" value="<%:Save & Apply%>" onclick="cbi_submit(this, 'cbi.apply')" /> <%
+			if wizard_not_complete then
+				if redirect == "/cgi-bin/luci/wizard/complete" then
+					%><input id="Finish" class="cbi-button cbi-button-apply" type="button" value="<%:Finish%>" onclick="cbi_submit(this, 'cbi.apply')"/><%
+				end
+			else
+				%><input class="cbi-button cbi-button-apply" type="button" value="<%:Save%>" onclick="cbi_submit(this, 'cbi.apply')" /><%
+			end
 		end
 
 		if display_save then

@@ -7,7 +7,7 @@
 	<%- end %>
 	<% local isempty = true for i, k in ipairs(self:cfgsections()) do -%>
 		<% if self.addremove then -%>
-			<div class="cbi-section-remove right">
+			<div class="cbi-section-remove">
 				<input type="submit" name="cbi.rts.<%=self.config%>.<%=k%>" onclick="this.form.cbi_state='del-section'; return true" value="<%:Delete%>" class="cbi-button" />
 			</div>
 		<%- end %>
@@ -23,6 +23,7 @@
 		<div class="cbi-section-node<% if self.tabs then %> cbi-section-node-tabbed<% end %>" id="cbi-<%=self.config%>-<%=section%>">
 			<%+cbi/ucisection%>
 		</div>
+		<% if self.loop then  break end %>
 	<%- end %>
 
 	<% if isempty then -%>

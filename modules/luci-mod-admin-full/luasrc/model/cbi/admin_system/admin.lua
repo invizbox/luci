@@ -3,6 +3,7 @@
 -- Licensed to the public under the Apache License 2.0.
 
 local fs = require "nixio.fs"
+local http = require "luci.http"
 
 m = Map("system", translate("Router Password"),
 	translate("Changes the administrator password for accessing the device"))
@@ -13,9 +14,10 @@ s.anonymous = true
 
 pw1 = s:option(Value, "pw1", translate("Password"))
 pw1.password = true
-
-pw2 = s:option(Value, "pw2", translate("Confirmation"))
-pw2.password = true
+pw1.template = "cbi/password"
+pw1.id = "admin_password"
+pw1.validator_equals = "#admin_password"
+pw1.validator_equals_error = "Passwords do not match"
 
 function s.cfgsections()
 	return { "_pass" }
@@ -23,7 +25,7 @@ end
 
 function m.parse(map)
 	local v1 = pw1:formvalue("_pass")
-	local v2 = pw2:formvalue("_pass")
+	local v2 = http.formvalue("cbid.system._pass.pw12")
 
 	if v1 and v2 and #v1 > 0 and #v2 > 0 then
 		if v1 == v2 then

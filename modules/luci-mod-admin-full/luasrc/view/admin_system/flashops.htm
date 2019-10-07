@@ -64,7 +64,7 @@
 <div class="cbi-section">
 	<h3><%:Flash new firmware image%></h3>
 	<% if upgrade_avail then %>
-		<form method="post" action="<%=url('admin/system/flashops/sysupgrade')%>" enctype="multipart/form-data">
+		<form method="post" action="<%=url('admin/system/flashops/sysupgrade')%>" enctype="multipart/form-data" onsubmit="return stopTor()">
 			<input type="hidden" name="token" value="<%=token%>" />
 			<div class="cbi-section-descr"><%:Upload a sysupgrade-compatible image here to replace the running firmware. Check "Keep settings" to retain the current configuration (requires a compatible firmware image).%></div>
 			<div class="cbi-section-node">

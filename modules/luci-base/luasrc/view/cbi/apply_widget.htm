@@ -1,4 +1,8 @@
 <% export("cbi_apply_widget", function(redirect_ok, rollback_token) -%>
+<%
+  local uci = require("uci").cursor()
+  local wizard_not_complete = uci:load("wizard") and uci:get("wizard", "main", "complete") == "false"
+%>
 <style type="text/css">
 	#cbi_apply_overlay {
 		position: absolute;
@@ -68,6 +72,15 @@
 			if (content)
 				message.innerHTML = content;
 
+      var connectionFailureText = document.getElementById('connection-failure-text');
+      if (connectionFailureText) {
+        var button = document.getElementById('connection-failure-button');
+        pollForConnectivity(function () {
+          connectionFailureText.textContent = 'Click the button below to <%if wizard_not_complete then%>finish the wizard<%else%>return to the status page<%end%>.';
+          button.removeAttribute('disabled');
+        }, 5 * 1000);
+      }
+      
 			document.body.classList.add('apply-overlay-active');
 
 			if (!was_xhr_poll_running) {
@@ -111,11 +124,20 @@
 
 			call({ status: 0 });
 		}
-		else {
-			uci_status_message('warning',
-				'<h4><%:Device unreachable!%></h4>' +
-				'<p><%:Could not regain access to the device after applying the configuration changes. You might need to reconnect if you modified network related settings such as the IP address or wireless security credentials.%></p>');
-		}
+    else {
+      uci_status_message('warning',
+        <% if wizard_not_complete then %>
+        '<h4><%:The connection to your InvizBox failed when accessing the selected network.%></h4>' +
+        <% else %>
+        '<h4><%:The connection to your InvizBox failed after your last configuration changes.%></h4>' +
+        <% end %>
+        '<p id="connection-failure-text"><%:Make sure you are connected to your InvizBox WiFi hotspot which will reactivate the button below.%></p>' +
+        <%if wizard_not_complete then%>
+        '<input id="connection-failure-button" style="margin:auto;" onclick="window.location.href=\'<%=url("wizard/complete")%>\';" disabled class="cbi-button cbi-button-apply" value="Finish" type="button">');
+        <%else%>
+        '<input id="connection-failure-button" style="margin:auto;" onclick="window.location.href=\'<%=controller%>\';" disabled class="cbi-button cbi-button-apply" value="Status Page" type="button">');
+        <%end%>
+    }
 	}
 
 	function uci_confirm(checked, deadline) {
@@ -133,16 +155,12 @@
 				var indicator = document.querySelector('.uci_change_indicator');
 				if (indicator) indicator.style.display = 'none';
 
-				uci_status_message('notice', '<%:Configuration has been applied.%>');
-
 				window.clearTimeout(tt);
-				window.setTimeout(function() {
-					<% if redirect_ok then -%>
-						location.href = decodeURIComponent('<%=luci.util.urlencode(redirect_ok)%>');
-					<%- else -%>
-						window.location = window.location.href.split('#')[0];
-					<% end %>
-				}, uci_apply_display * 1000);
+        <% if redirect_ok then -%>
+        location.href = decodeURIComponent('<%=luci.util.urlencode(redirect_ok)%>')+'?success=true';
+        <%- else -%>
+        window.location = window.location.href.split('#')[0] + '?success=true';
+        <% end %>
 
 				return;
 			}
@@ -178,6 +196,7 @@
 			'<img src="<%=resource%>/icons/loading.gif" alt="" style="vertical-align:middle" /> ' +
 			'<%:Starting configuration apply…%>');
 
+		checked = false
 		xhr.post('<%=url("admin/uci")%>/' + (checked ? 'apply_rollback' : 'apply_unchecked'), uci_apply_auth, function(r, tok) {
 			if (r.status === (checked ? 200 : 204)) {
 				if (checked && tok !== null && typeof(tok) === 'object' && typeof(tok.token) === 'string')

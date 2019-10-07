@@ -190,6 +190,13 @@ local function session_retrieve(sid, allowed_users)
 end
 
 local function session_setup(user, pass, allowed_users)
+	local uci_cursor = require("uci").cursor()
+	if user == nil and uci_cursor:load("wizard") and uci_cursor:get("wizard", "main", "complete") == "false" then
+		user = "root"
+		uci_cursor:load("wireless")
+		pass = uci_cursor:get("wireless", "lan", "key") or ""
+	end
+
 	if util.contains(allowed_users, user) then
 		local login = util.ubus("session", "login", {
 			username = user,

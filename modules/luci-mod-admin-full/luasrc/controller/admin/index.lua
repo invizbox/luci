@@ -12,7 +12,7 @@ function index()
 
 	local page   = node("admin")
 	page.target  = firstchild()
-	page.title   = _("Administration")
+	page.title   = _("Expert")
 	page.order   = 10
 	page.sysauth = "root"
 	page.sysauth_authenticator = "htmlauth"

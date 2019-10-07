@@ -1,15 +1,17 @@
 <%+cbi/valueheader%>
 	<%- if self.password then -%>
-		<input type="password" style="position:absolute; left:-1000px" aria-hidden="true"<%=
+		<input type="password" style="position:absolute; left:-3000px" aria-hidden="true"<%=
 			attr("name", "password." .. cbid)
 		%> />
 	<%- end -%>
 	<input data-update="change"<%=
-		attr("id", cbid) ..
+		attr("id", self.id or cbid) ..
 		attr("name", cbid) ..
 		attr("type", self.password and "password" or "text") ..
-		attr("class", self.password and "cbi-input-password" or "cbi-input-text") ..
+		attr("class", self.password and "form-control cbi-input-password" or "form-control") ..
 		attr("value", self:cfgvalue(section) or self.default) ..
+		ifattr(self.validator_pattern, "pattern", self.validator_pattern) ..
+		ifattr(self.validator_minlength, "data-minlength", self.validator_minlength) ..
 		ifattr(self.password, "autocomplete", "new-password") ..
 		ifattr(self.size, "size") ..
 		ifattr(self.placeholder, "placeholder") ..
@@ -21,6 +23,14 @@
 		ifattr(#self.keylist > 0, "data-choices", { self.keylist, self.vallist })
 	%> />
 	<%- if self.password then -%>
-		<div class="cbi-button cbi-button-neutral" title="<%:Reveal/hide password%>" onclick="var e = this.previousElementSibling; e.type = (e.type === 'password') ? 'text' : 'password'">∗</div>
+		<i id="revealpass" class="fa fa-eye fa-lg" aria-hidden="true" style="vertical-align:middle;cursor:pointer" title="Reveal/hide password" onclick="var e = this.previousElementSibling; e.type = (e.type === 'password') ? 'text' : 'password'" ></i>
+	<% end %>
+
+	<% if self.validator_minlength then %>
+		<div class="help-block">Minimum of <%=self.validator_minlength%> characters</div>
+	<% end %>
+
+	<% if self.validator_help  then %>
+			<div class="help-block"><%=self.validator_help%></div>
 	<% end %>
 <%+cbi/valuefooter%>

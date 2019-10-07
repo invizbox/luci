@@ -6,7 +6,7 @@
 
 <%+header%>
 
-<h2 name="content"><%:Reboot%></h2>
+<h2 id="reboot" name="content"><%:Reboot%></h2>
 
 <p><%:Reboots the operating system of your device%></p>
 
@@ -14,9 +14,9 @@
 	<p class="alert-message warning"><%:Warning: There are unsaved changes that will get lost on reboot!%></p>
 <%- end -%>
 
-<hr />
-
-<input class="cbi-button cbi-button-action important" type="button" value="<%:Perform reboot%>" onclick="reboot(this)" />
+<div class="cbi-page-actions">
+	<input class="cbi-button cbi-button-apply" id="perform_reboot" type="button" value="<%:Perform reboot%>" onclick="reboot(this)" />
+</div>
 
 <p class="alert-message notice reboot-message" style="display:none">
 	<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" />
