@@ -4,6 +4,8 @@
 
 module("luci.controller.admin.system", package.seeall)
 
+local uci = require("luci.model.uci").cursor()
+
 function index()
 	local fs = require "nixio.fs"
 
@@ -13,24 +15,24 @@ function index()
 
 	entry({"admin", "system", "admin"}, cbi("admin_system/admin"), _("Administration"), 2)
 
-	if fs.access("/bin/opkg") then
-		entry({"admin", "system", "packages"}, post_on({ exec = "1" }, "action_packages"), _("Software"), 10)
-		entry({"admin", "system", "packages", "ipkg"}, form("admin_system/ipkg"))
-	end
+--	if fs.access("/bin/opkg") then
+--		entry({"admin", "system", "packages"}, post_on({ exec = "1" }, "action_packages"), _("Software"), 10)
+--		entry({"admin", "system", "packages", "ipkg"}, form("admin_system/ipkg"))
+--	end
 
-	entry({"admin", "system", "startup"}, form("admin_system/startup"), _("Startup"), 45)
-	entry({"admin", "system", "crontab"}, form("admin_system/crontab"), _("Scheduled Tasks"), 46)
+--	entry({"admin", "system", "startup"}, form("admin_system/startup"), _("Startup"), 45)
+--	entry({"admin", "system", "crontab"}, form("admin_system/crontab"), _("Scheduled Tasks"), 46)
 
-	if fs.access("/sbin/block") and fs.access("/etc/config/fstab") then
-		entry({"admin", "system", "fstab"}, cbi("admin_system/fstab"), _("Mount Points"), 50)
-		entry({"admin", "system", "fstab", "mount"}, cbi("admin_system/fstab/mount"), nil).leaf = true
-		entry({"admin", "system", "fstab", "swap"},  cbi("admin_system/fstab/swap"),  nil).leaf = true
-	end
+--	if fs.access("/sbin/block") and fs.access("/etc/config/fstab") then
+--		entry({"admin", "system", "fstab"}, cbi("admin_system/fstab"), _("Mount Points"), 50)
+--		entry({"admin", "system", "fstab", "mount"}, cbi("admin_system/fstab/mount"), nil).leaf = true
+--		entry({"admin", "system", "fstab", "swap"},  cbi("admin_system/fstab/swap"),  nil).leaf = true
+--	end
 
-	local nodes, number = fs.glob("/sys/class/leds/*")
-	if number > 0 then
-		entry({"admin", "system", "leds"}, cbi("admin_system/leds"), _("<abbr title=\"Light Emitting Diode\">LED</abbr> Configuration"), 60)
-	end
+--	local nodes, number = fs.glob("/sys/class/leds/*")
+--	if number > 0 then
+--		entry({"admin", "system", "leds"}, cbi("admin_system/leds"), _("<abbr title=\"Light Emitting Diode\">LED</abbr> Configuration"), 60)
+--	end
 
 	entry({"admin", "system", "flashops"}, call("action_flashops"), _("Backup / Flash Firmware"), 70)
 	entry({"admin", "system", "flashops", "reset"}, post("action_reset"))
@@ -40,7 +42,9 @@ function index()
 	-- call() instead of post() due to upload handling!
 	entry({"admin", "system", "flashops", "restore"}, call("action_restore"))
 	entry({"admin", "system", "flashops", "sysupgrade"}, call("action_sysupgrade"))
-
+	entry({"admin", "system", "flashops", "stop_tor"}, call("action_stop_tor"))
+    entry({"admin", "system", "update"}, call("action_get_update_log"), _("Update Log"), 85)
+	entry({"admin", "system", "update", "call"}, post("action_update"))
 	entry({"admin", "system", "reboot"}, template("admin_system/reboot"), _("Reboot"), 90)
 	entry({"admin", "system", "reboot", "call"}, post("action_reboot"))
 end
@@ -235,8 +239,13 @@ end
 function action_sysupgrade()
 	local fs = require "nixio.fs"
 	local http = require "luci.http"
+	local uci = require "luci.model.uci".cursor()
 	local image_tmp = "/tmp/firmware.img"
+	local new_version = uci:get("update", "version", "new_firmware")
 
+	if http.formvalue("version") == "1" then
+		os.execute("mv /etc/update/firmware/new_firmware-"..new_version.."-sysupgrade.bin "..image_tmp)
+	end
 	local fp
 	http.setfilehandler(
 		function(meta, chunk, eof)
@@ -291,14 +300,32 @@ function action_sysupgrade()
 	-- Start sysupgrade flash
 	--
 	elseif step == 2 then
+        uci:set("wizard", "main", "flashing", "true")
+        uci:commit("wizard")
 		local keep = (http.formvalue("keep") == "1") and "" or "-n"
 		luci.template.render("admin_system/applyreboot", {
 			title = luci.i18n.translate("Flashing..."),
-			msg   = luci.i18n.translate("The system is flashing now.<br /> DO NOT POWER OFF THE DEVICE!<br /> Wait a few minutes before you try to reconnect. It might be necessary to renew the address of your computer to reach the device again, depending on your settings."),
-			addr  = (#keep > 0) and "192.168.1.1" or nil
+            msg   = [[
+                <h3>Your InvizBox is now flashing a new firmware.</h3>
+                <div class="alert-message warning">
+                    <p>DO NOT POWER OFF THE DEVICE UNTIL YOU HAVE RECONNECTED!</p>
+                </div>
+                <h4 class="info-text">
+                  Wait a few minutes before your device reconnects (until the hotspot comes back).
+                  It might be necessary for you to reconnect to the hotspot if you have been disconnected.
+                  If you are using an Ethernet cable, you may need to renew your IP address.
+                  Once your device has reconnected to your InvizBox, this page will bring you back to the login page.
+                </h4>]],
+			addr  = (#keep > 0) and uci:get("network", "lan", "ipaddr") or nil
 		})
 		fork_exec("sleep 1; killall dropbear uhttpd; sleep 1; /sbin/sysupgrade %s %q" %{ keep, image_tmp })
 	end
+end
+
+function action_stop_tor()
+	os.execute("kill -9 $(ps | grep tor | grep -v grep | awk '{ printf \"%s \",$1 }'); /etc/init.d/tor stop")
+	luci.http.prepare_content("text/plain")
+	luci.http.write("Done")
 end
 
 function action_backup()
@@ -342,7 +369,19 @@ function action_restore()
 	local upload = http.formvalue("archive")
 	if upload and #upload > 0 then
 		if os.execute("gunzip -t %q >/dev/null 2>&1" % archive_tmp) == 0 then
-			luci.template.render("admin_system/applyreboot")
+			uci:set("wizard", "main", "flashing", "true")
+			uci:commit("wizard")
+			luci.template.render("admin_system/applyreboot", {
+				title = luci.i18n.translate("Restoring..."),
+				msg   = luci.i18n.translate([[
+					<h3>Your InvizBox is restoring a backup.</h3>
+					<h4 class="info-text">
+					  Wait a few minutes before your device reconnects (until the hotspot comes back).
+					  It might be necessary for you to reconnect to the hotspot if you have been disconnected.
+					  If you are using an Ethernet cable, you may need to renew your IP address.
+					  Once your device has reconnected to your InvizBox, this page will bring you back to the login page.
+					</h4>]]),
+			})
 			os.execute("tar -C / -xzf %q >/dev/null 2>&1" % archive_tmp)
 			luci.sys.reboot()
 		else
@@ -360,10 +399,19 @@ end
 
 function action_reset()
 	if supports_reset() then
+		uci:set("wizard", "main", "flashing", "true")
+		uci:commit("wizard")
 		luci.template.render("admin_system/applyreboot", {
 			title = luci.i18n.translate("Erasing..."),
-			msg   = luci.i18n.translate("The system is erasing the configuration partition now and will reboot itself when finished."),
-			addr  = "192.168.1.1"
+			msg   = luci.i18n.translate([[
+			    <h3>Your InvizBox is resetting.</h3>
+				<h4 class="info-text">
+				  Wait a few minutes before your device reconnects (until the hotspot comes back).
+				  It might be necessary for you to reconnect to the hotspot if you have been disconnected.
+				  If you are using an Ethernet cable, you may need to renew your IP address.
+				  Once your device has reconnected to your InvizBox, this page will bring you back to the login page.
+				</h4>]]),
+			addr  = uci:get("network", "lan", "ipaddr")
 		})
 
 		fork_exec("sleep 1; killall dropbear uhttpd; sleep 1; jffs2reset -y && reboot")
@@ -387,6 +435,18 @@ function action_passwd()
 	end
 
 	luci.template.render("admin_system/passwd", {stat=stat})
+end
+
+function action_get_update_log()
+	local update_log =   luci.util.exec("cat /var/log/update.log")
+	if update_log == "" then
+		update_log = "There was no update since the last restart of your device"
+	end
+	luci.template.render("update", {update=update_log})
+end
+
+function action_update()
+	os.execute("/usr/lib/lua/update.lua")
 end
 
 function action_reboot()

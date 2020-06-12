@@ -28,24 +28,21 @@
 %>
                 </div>
                 <footer class="mobile-hide">
-                    <a href="https://github.com/openwrt/luci">Powered by <%= ver.luciname %> (<%= ver.luciversion %>)</a> /
-                    <%= ver.distversion %>
-                    <% if #categories > 1 then %>
-                    <ul class="breadcrumb pull-right" id="modemenu">
-                        <% for i, r in ipairs(categories) do %>
-                        <li<% if request[1] == r then %> class="active"<%end%>><a href="<%=controller%>/<%=r%>/"><%=striptags(translate(tree.nodes[r].title))%></a> <span class="divider">|</span></li>
-                        <% end %>
-                    </ul>
-                    <% end %>
+                    <a href="https://www.invizbox.com">© 2020 InvizBox. All rights reserved.</a> /
+                    <a href="https://www.lede-project.org/">LuCi + OpenWRT</a>
                 </footer>
             </div>
         </div>
-
+    </div>
     <script>
         // thanks for Jo-Philipp Wich <jow@openwrt.org>
         var luciLocation = <%= luci.http.write_json(luci.dispatcher.context.path) %>;
     </script>
     <script src="<%=media%>/js/jquery.min.js"></script>
     <script src="<%=media%>/js/script.js"></script>
+    <script src="/luci-static/js/invizbox.js"></script>
+    <script src="/luci-static/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="/luci-static/js/jquery.validate.min.js"></script>
+    <script src="/luci-static/js/validator.min.js"></script>
 </body>
 </html>

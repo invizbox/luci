@@ -53,5 +53,7 @@ service_triggers() {
 }
 
 start_service() {
+    uci set wizard.main.flashing=false
+    uci commit wizard
 	config_load ucitrack
 }

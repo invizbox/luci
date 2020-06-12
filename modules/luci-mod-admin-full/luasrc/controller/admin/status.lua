@@ -5,32 +5,32 @@
 module("luci.controller.admin.status", package.seeall)
 
 function index()
-	entry({"admin", "status"}, alias("admin", "status", "overview"), _("Status"), 20).index = true
-	entry({"admin", "status", "overview"}, template("admin_status/index"), _("Overview"), 1)
+	entry({"admin", "status"}, template("admin_status/index"), _("Status"), 20).index = true
+--	entry({"admin", "status", "overview"}, template("admin_status/index"), _("Overview"), 1)
 
-	entry({"admin", "status", "iptables"}, template("admin_status/iptables"), _("Firewall"), 2).leaf = true
-	entry({"admin", "status", "iptables_action"}, post("action_iptables")).leaf = true
+--	entry({"admin", "status", "iptables"}, template("admin_status/iptables"), _("Firewall"), 2).leaf = true
+--	entry({"admin", "status", "iptables_action"}, post("action_iptables")).leaf = true
 
-	entry({"admin", "status", "routes"}, template("admin_status/routes"), _("Routes"), 3)
-	entry({"admin", "status", "syslog"}, call("action_syslog"), _("System Log"), 4)
-	entry({"admin", "status", "dmesg"}, call("action_dmesg"), _("Kernel Log"), 5)
-	entry({"admin", "status", "processes"}, form("admin_status/processes"), _("Processes"), 6)
+--	entry({"admin", "status", "routes"}, template("admin_status/routes"), _("Routes"), 3)
+	entry({"admin", "system", "syslog"}, call("action_syslog"), _("System Log"), 80)
+	entry({"admin", "system", "dmesg"}, call("action_dmesg"), _("Kernel Log"), 81)
+--	entry({"admin", "status", "processes"}, form("admin_status/processes"), _("Processes"), 6)
 
-	entry({"admin", "status", "realtime"}, alias("admin", "status", "realtime", "load"), _("Realtime Graphs"), 7)
+	entry({"admin", "realtime"}, alias("admin",  "realtime", "load"), _("Realtime Graphs"), 55)
 
-	entry({"admin", "status", "realtime", "load"}, template("admin_status/load"), _("Load"), 1).leaf = true
-	entry({"admin", "status", "realtime", "load_status"}, call("action_load")).leaf = true
+	entry({"admin", "realtime", "load"}, template("admin_status/load"), _("Load"), 1).leaf = true
+	entry({"admin", "realtime", "load_status"}, call("action_load")).leaf = true
 
-	entry({"admin", "status", "realtime", "bandwidth"}, template("admin_status/bandwidth"), _("Traffic"), 2).leaf = true
-	entry({"admin", "status", "realtime", "bandwidth_status"}, call("action_bandwidth")).leaf = true
+	entry({"admin", "realtime", "bandwidth"}, template("admin_status/bandwidth"), _("Traffic"), 2).leaf = true
+	entry({"admin", "realtime", "bandwidth_status"}, call("action_bandwidth")).leaf = true
 
 	if nixio.fs.access("/etc/config/wireless") then
-		entry({"admin", "status", "realtime", "wireless"}, template("admin_status/wireless"), _("Wireless"), 3).leaf = true
-		entry({"admin", "status", "realtime", "wireless_status"}, call("action_wireless")).leaf = true
+		entry({"admin", "realtime", "wireless"}, template("admin_status/wireless"), _("Wireless"), 3).leaf = true
+		entry({"admin", "realtime", "wireless_status"}, call("action_wireless")).leaf = true
 	end
 
-	entry({"admin", "status", "realtime", "connections"}, template("admin_status/connections"), _("Connections"), 4).leaf = true
-	entry({"admin", "status", "realtime", "connections_status"}, call("action_connections")).leaf = true
+	entry({"admin", "realtime", "connections"}, template("admin_status/connections"), _("Connections"), 4).leaf = true
+	entry({"admin", "realtime", "connections_status"}, call("action_connections")).leaf = true
 
 	entry({"admin", "status", "nameinfo"}, call("action_nameinfo")).leaf = true
 end

@@ -1,7 +1,7 @@
 module("luci.controller.firewall", package.seeall)
 
 function index()
-	entry({"admin", "network", "firewall"},
+	--[[entry({"admin", "network", "firewall"},
 		alias("admin", "network", "firewall", "zones"),
 		_("Firewall"), 60)
 
@@ -19,5 +19,5 @@ function index()
 
 	entry({"admin", "network", "firewall", "custom"},
 		form("firewall/custom"),
-		_("Custom Rules"), 40).leaf = true
+		_("Custom Rules"), 40).leaf = true]]--
 end

@@ -7,10 +7,7 @@ local util = require("luci.util")
 local dump = util.ubus("network.interface", "dump", {})
 
 m = Map("adblock", translate("Adblock"),
-	translate("Configuration of the adblock package to block ad/abuse domains by using DNS. ")
-	.. translatef("For further information "
-	.. "<a href=\"%s\" target=\"_blank\">"
-	.. "check the online documentation</a>", "https://github.com/openwrt/packages/blob/master/net/adblock/files/README.md"))
+	translate("Configuration of the adblock package to block ad/abuse domains by using DNS."))
 
 -- Main adblock options
 
@@ -20,7 +17,7 @@ o1 = s:option(Flag, "adb_enabled", translate("Enable Adblock"))
 o1.default = o1.disabled
 o1.rmempty = false
 
-o2 = s:option(ListValue, "adb_dns", translate("DNS Backend (DNS Directory)"),
+--[[o2 = s:option(ListValue, "adb_dns", translate("DNS Backend (DNS Directory)"),
 	translate("List of supported DNS backends with their default list export directory. ")
 	.. translate("To overwrite the default path use the 'DNS Directory' option in the extra section below."))
 o2:value("dnsmasq", "dnsmasq (/tmp)")
@@ -178,6 +175,6 @@ e13.optional = true
 e14 = e:option(Value, "adb_triggerdelay", translate("Trigger Delay"),
 	translate("Additional trigger delay in seconds before adblock processing begins."))
 e14.datatype = "range(1,60)"
-e14.optional = true
+e14.optional = true]]--
 
 return m

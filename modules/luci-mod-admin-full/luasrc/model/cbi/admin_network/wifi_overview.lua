@@ -215,7 +215,7 @@ s = m:section(NamedSection, "__assoclist__")
 
 function s.render(self, sid)
 	tpl.render_string([[
-		<h2><%:Associated Stations%></h2>
+		<h3><%:Associated Stations%></h3>
 		<%+admin_network/wifi_assoclist%>
 	]])
 end

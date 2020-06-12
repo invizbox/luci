@@ -507,6 +507,7 @@ static int run_daemon(void)
 				iw_checkif("wlan%d");
 				iw_checkif("ath%d");
 				iw_checkif("wl%d");
+				iw_checkif("ap%d");
 			}
 		}
 

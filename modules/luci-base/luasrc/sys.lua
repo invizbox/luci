@@ -99,7 +99,7 @@ function reboot()
 end
 
 function syslog()
-	return luci.util.exec("logread")
+	return luci.util.exec("logread -l 500")
 end
 
 function dmesg()

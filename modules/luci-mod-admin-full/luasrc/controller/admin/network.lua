@@ -19,7 +19,7 @@ function index()
 
 		uci:foreach("network", "switch",
 			function(s)
-				has_switch = true
+				has_switch = false
 				return false
 			end)
 
@@ -84,7 +84,7 @@ function index()
 			end
 		end
 
-
+--[[
 		page = entry({"admin", "network", "iface_add"}, form("admin_network/iface_add"), nil)
 		page.leaf = true
 
@@ -96,8 +96,9 @@ function index()
 
 		page = entry({"admin", "network", "network"}, arcombine(cbi("admin_network/network"), cbi("admin_network/ifaces")), _("Interfaces"), 10)
 		page.leaf   = true
+]]--
 		page.subindex = true
-
+--[[
 		if page.inreq then
 			uci:foreach("network", "interface",
 				function (section)
@@ -115,10 +116,10 @@ function index()
 			page.target = cbi("admin_network/dhcp")
 			page.title  = _("DHCP and DNS")
 			page.order  = 30
-
+]]--
 			page = entry({"admin", "network", "dhcplease_status"}, call("lease_status"), nil)
 			page.leaf = true
-
+--[[
 			page = node("admin", "network", "hosts")
 			page.target = cbi("admin_network/hosts")
 			page.title  = _("Hostnames")
@@ -129,7 +130,7 @@ function index()
 		page.target = cbi("admin_network/routes")
 		page.title  = _("Static Routes")
 		page.order  = 50
-
+]]--
 		page = node("admin", "network", "diagnostics")
 		page.target = template("admin_network/diagnostics")
 		page.title  = _("Diagnostics")

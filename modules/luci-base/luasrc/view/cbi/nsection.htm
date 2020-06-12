@@ -6,8 +6,11 @@
 		<% if self.description and #self.description > 0 then -%>
 			<div class="cbi-section-descr"><%=self.description%></div>
 		<%- end %>
+		<% if self.help_text then %>
+			<h5 class='info-text'><%=self.help_text%></h5>
+		<%- end %>
 		<% if self.addremove then -%>
-			<div class="cbi-section-remove right">
+			<div class="cbi-section-remove">
 				<input type="submit" class="cbi-button" name="cbi.rns.<%=self.config%>.<%=section%>" value="<%:Delete%>" />
 			</div>
 		<%- end %>

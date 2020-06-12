@@ -110,7 +110,7 @@ end
 <!-- tblsection -->
 <div class="cbi-section cbi-tblsection" id="cbi-<%=self.config%>-<%=self.sectiontype%>">
 	<% if self.title and #self.title > 0 then -%>
-		<h3><%=self.title%></h3>
+		<span class="panel-title"><%=self.title%></span>
 	<%- end %>
 	<%- if self.sortable then -%>
 		<input type="hidden" id="cbi.sts.<%=self.config%>.<%=self.sectiontype%>" name="cbi.sts.<%=self.config%>.<%=self.sectiontype%>" value="" />

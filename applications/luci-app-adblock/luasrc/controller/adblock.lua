@@ -14,18 +14,18 @@ function index()
 	if not nixio.fs.access("/etc/config/adblock") then
 		return
 	end
-	entry({"admin", "services", "adblock"}, firstchild(), _("Adblock"), 30).dependent = false
-	entry({"admin", "services", "adblock", "tab_from_cbi"}, cbi("adblock/overview_tab", {hideresetbtn=true, hidesavebtn=true}), _("Overview"), 10).leaf = true
-	entry({"admin", "services", "adblock", "log"}, template("adblock/logread"), _("View Logfile"), 20).leaf = true
-	entry({"admin", "services", "adblock", "advanced"}, firstchild(), _("Advanced"), 100)
-	entry({"admin", "services", "adblock", "advanced", "blacklist"}, form("adblock/blacklist_tab"), _("Edit Blacklist"), 110).leaf = true
-	entry({"admin", "services", "adblock", "advanced", "whitelist"}, form("adblock/whitelist_tab"), _("Edit Whitelist"), 120).leaf = true
-	entry({"admin", "services", "adblock", "advanced", "configuration"}, form("adblock/configuration_tab"), _("Edit Configuration"), 130).leaf = true
-	entry({"admin", "services", "adblock", "advanced", "query"}, template("adblock/query"), _("Query domains"), 140).leaf = true
-	entry({"admin", "services", "adblock", "advanced", "result"}, call("queryData"), nil, 150).leaf = true
-	entry({"admin", "services", "adblock", "logread"}, call("logread"), nil).leaf = true
-	entry({"admin", "services", "adblock", "status"}, call("status_update"), nil).leaf = true
-	entry({"admin", "services", "adblock", "action"}, call("adb_action"), nil).leaf = true
+	entry({"admin", "services", "adblock"}, cbi("adblock/overview_tab"), _("Adblock"), 30)
+--	entry({"admin", "services", "adblock", "tab_from_cbi"}, cbi("adblock/overview_tab", {hideresetbtn=true, hidesavebtn=true}), _("Overview"), 10).leaf = true
+--	entry({"admin", "services", "adblock", "log"}, template("adblock/logread"), _("View Logfile"), 20).leaf = true
+--	entry({"admin", "services", "adblock", "advanced"}, firstchild(), _("Advanced"), 100)
+--	entry({"admin", "services", "adblock", "advanced", "blacklist"}, form("adblock/blacklist_tab"), _("Edit Blacklist"), 110).leaf = true
+--	entry({"admin", "services", "adblock", "advanced", "whitelist"}, form("adblock/whitelist_tab"), _("Edit Whitelist"), 120).leaf = true
+--	entry({"admin", "services", "adblock", "advanced", "configuration"}, form("adblock/configuration_tab"), _("Edit Configuration"), 130).leaf = true
+--	entry({"admin", "services", "adblock", "advanced", "query"}, template("adblock/query"), _("Query domains"), 140).leaf = true
+--	entry({"admin", "services", "adblock", "advanced", "result"}, call("queryData"), nil, 150).leaf = true
+--	entry({"admin", "services", "adblock", "logread"}, call("logread"), nil).leaf = true
+--	entry({"admin", "services", "adblock", "status"}, call("status_update"), nil).leaf = true
+--	entry({"admin", "services", "adblock", "action"}, call("adb_action"), nil).leaf = true
 end
 
 function adb_action(name)

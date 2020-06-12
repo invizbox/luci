@@ -120,11 +120,12 @@ function action_flashops()
 		-- Start sysupgrade flash
 		--
 		elseif step == 2 then
+			local uci = require("uci").cursor()
 			local keep = (luci.http.formvalue("keep") == "1") and "" or "-n"
 			luci.template.render("failsafe/applyreboot", {
 				title = luci.i18n.translate("Flashing..."),
 				msg   = luci.i18n.translate("The system is flashing now.<br /> DO NOT POWER OFF THE DEVICE!<br /> Wait a few minutes before you try to reconnect. It might be necessary to renew the address of your computer to reach the device again, depending on your settings."),
-				addr  = (#keep > 0) and "192.168.1.1" or nil
+				addr  = (#keep > 0) and uci:get("network", "lan", "ipaddr") or nil
 			})
 			fork_exec("killall dropbear uhttpd; sleep 1; /sbin/sysupgrade %s %q" %{ keep, image_tmp })
 		end
